@@ -28,8 +28,6 @@ graph_template = 'simple_white'
 
 @st.cache
 def get_data():
-    # client = gspread.service_account(
-    #     filename='./electricity-dashboard-324008-0f4879b1f277.json')
     client = gspread.service_account_from_dict(credentials)
     sheets = client.open_by_key('1USbS6ptSKqm3UT5LdwgvVru174eMq_g5HnfGOASivJI')
     data = sheets.sheet1.get_all_values()
