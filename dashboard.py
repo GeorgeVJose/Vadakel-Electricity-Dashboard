@@ -10,6 +10,9 @@ st.set_page_config(
     layout='wide'
 )
 
+with open('style.css') as f:
+    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
 credentials = {
     "type": st.secrets['type'],
     "project_id": st.secrets['project_id'],
@@ -54,24 +57,25 @@ df = get_data()
 st.markdown("<h1 style='text-align: center;'>⚡Vadakel Electricity Dashboard⚡</h1>",
             unsafe_allow_html=True)
 
-st.write('')
-st.write('')
+st.markdown('---')
 
+# --- Sidebar ---
 st.sidebar.title("Overall Metrics")
 st.sidebar.caption(
     f"Data from {df['Bill Date'].dt.strftime('%d %B %Y').head(1).to_list()[0]} to {df['Bill Date'].dt.strftime('%d %B %Y').tail(1).to_list()[0]}")
 st.sidebar.metric(label="Amount Paid",
-                  value=f"₹ {float(df['Payable'].sum())}"
+                  value=f"₹ {round(df['Payable'].sum())}"
                   )
 st.sidebar.metric(label="Energy Charges",
-                  value=f"₹ {float(df['Energy Charges'].sum())}"
+                  value=f"₹ {round(df['Energy Charges'].sum())}"
                   )
 st.sidebar.metric(label="Units Consumed",
                   value=f"{int(df['Consumption'].sum())} kWh"
                   )
 
 st.sidebar.markdown("***")
-st.sidebar.metric(label="Estimated Bill Date",
+st.sidebar.header("Expected Bill Date")
+st.sidebar.metric(label="",
                   value=get_expected_bill_date()
                   )
 
@@ -103,8 +107,9 @@ with currentinfo3:
         delta_color='inverse'
     )
 
-st.write('')
-st.write('')
+st.markdown('---')
+st.markdown("<h3 style='text-align: center;'>Overall Bill</h3>",
+            unsafe_allow_html=True)
 
 fig3 = px.bar(
     df,
@@ -115,15 +120,6 @@ fig3 = px.bar(
     template=graph_template,
     hover_data=['Payable', 'Logs']
 )
-fig3.update_layout(
-    title={
-        'text': "Bill Amount",
-        'y': 0.92,
-        'x': 0.5,
-        'xanchor': 'center',
-        'yanchor': 'top'
-    }
-)
 fig3.add_shape(
     type='line',
     line_width=3, opacity=1,
@@ -131,10 +127,28 @@ fig3.add_shape(
     xref='paper', x0=0, x1=1,
     yref='y', y0=df['Payable'].mean(), y1=df['Payable'].mean()
 )
-st.plotly_chart(
-    fig3,
-    use_container_width=True
+fig3.update_xaxes(
+    mirror=True,
+    showgrid=False,
 )
+fig3.update_yaxes(
+    mirror=True,
+)
+fig3.update_layout(
+    title={
+        'text': "Bill Amount",
+        'y': 0.92,
+        'x': 0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'
+    },
+    paper_bgcolor='#f5f5f5',
+)
+dumm_col, _ = st.columns([10, .1])
+with dumm_col:
+    st.plotly_chart(fig3, use_container_width=True)
+
+st.markdown('---')
 
 header1, header2 = st.columns(2)
 with header1:
@@ -142,8 +156,17 @@ with header1:
         df,
         x='Bill Date',
         y='Price per Unit',
+        line_shape='spline',
         markers=True,
         template=graph_template
+    )
+    fig1.update_xaxes(
+        mirror=True,
+        showgrid=False,
+    )
+    fig1.update_yaxes(
+        mirror=True,
+        range=[0, df['Price per Unit'].max() + 3],
     )
     fig1.update_layout(
         title={
@@ -152,19 +175,27 @@ with header1:
             'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top'
-        }
+        },
+        plot_bgcolor='#f5f5f5',
+        paper_bgcolor='#f5f5f5',
     )
-    st.plotly_chart(
-        fig1
-    )
+    st.plotly_chart(fig1, use_container_width=True)
 
 with header2:
     fig2 = px.line(
         df,
         x='Bill Date',
         y=['Consumption', 'Average'],
-        # markers=True,
+        line_shape='spline',
         template=graph_template
+    )
+    fig2.update_xaxes(
+        mirror=True,
+        showgrid=False,
+    )
+    fig2.update_yaxes(
+        mirror=True,
+        showgrid=False,
     )
     fig2.update_layout(
         title={
@@ -173,11 +204,11 @@ with header2:
             'x': 0.45,
             'xanchor': 'center',
             'yanchor': 'top'
-        }
+        },
+        plot_bgcolor='#f5f5f5',
+        paper_bgcolor='#f5f5f5',
     )
-    st.plotly_chart(
-        fig2
-    )
+    st.plotly_chart(fig2, use_container_width=True)
 
 
 with st.expander("Raw Data"):
